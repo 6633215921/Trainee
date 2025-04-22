@@ -1,0 +1,50 @@
+version: "2.4"
+services:
+  qa:
+    image: sharepoint
+    ports:
+      - 8503:8501
+    volumes:
+      - ./app.py:/app/app.py
+      - ./database.py:/app/database.py
+    networks:
+      - internal_network
+    environment:
+      - QDRANT_URL=http://qdrant:6333
+      - MYSQL_HOST=mysql
+      - MYSQL_DATABASE=rag
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_PORT=3309
+      - EMBEDDINGS_MODEL_API = ""
+      - GOOGLE_API_KEY = ""
+      - ChatAnthropic_API = ""
+      - ChatOpenAI_API = ""
+    command: streamlit run app.py
+
+  qdrant:
+    image: qdrant/qdrant
+    ports:
+      - 6334:6333
+    volumes:
+      - ./qdrant:/qdrant/storage
+    networks:
+      - internal_network
+
+  mysql:
+    image: mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - TZ=Asia/Bangkok
+    ports:
+      - 3309:3306
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+      - ./src/mysql:/docker-entrypoint-initdb.d
+    networks:
+      - internal_network
+      
+networks:
+  internal_network:
+    driver: bridge
